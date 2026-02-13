@@ -3,152 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ارسال گزارش محرمانه - HOTKYNTAKY</title>
+    <title>سیستم گزارش‌دهی ایمن</title>
     <style>
         body { background: #050505; color: #00ff41; font-family: 'Tahoma', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .terminal { background: rgba(0, 0, 0, 0.95); padding: 20px; border: 2px solid #00ff41; border-radius: 15px; box-shadow: 0 0 25px #00ff41; width: 100%; max-width: 450px; text-align: center; }
-        .input-group { margin-bottom: 15px; text-align: right; }
-        label { font-size: 12px; display: block; margin-bottom: 5px; color: #00cc33; }
-        input, textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; border-radius: 8px; outline: none; box-sizing: border-box; font-family: inherit; }
-        ::placeholder { color: #00661a; }
-        button { background: #00ff41; color: #000; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-family: inherit; transition: 0.3s; }
-        .voice-btn { background: #1a1a1a; color: #ff3e3e; border: 2px solid #ff3e3e; height: 50px; }
-        .recording { background: #ff3e3e !important; color: white !important; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,62,62,0.7);} 70% {box-shadow: 0 0 0 10px rgba(255,62,62,0);} 100% {box-shadow: 0 0 0 0 rgba(255,62,62,0);} }
+        .terminal { background: rgba(0, 0, 0, 0.9); padding: 25px; border: 2px solid #00ff41; border-radius: 15px; box-shadow: 0 0 25px #00ff41; width: 100%; max-width: 420px; text-align: center; }
+        input, textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; margin: 8px 0; border-radius: 8px; outline: none; box-sizing: border-box; font-family: inherit; }
+        button { background: #00ff41; color: #000; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
+        #adminBox { background: rgba(0, 50, 0, 0.4); border: 1px dashed #0f0; padding: 10px; margin-bottom: 15px; border-radius: 8px; font-size: 13px; min-height: 40px; }
         #mainPanel { display: none; }
-        .status-bar { font-size: 11px; border-bottom: 1px solid #00ff41; padding-bottom: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; opacity: 0.7; }
     </style>
 </head>
 <body>
 
     <div id="loginBox" class="terminal">
         <h2>🔒 سیستم مانیتورینگ</h2>
-        <input type="password" id="passInput" placeholder="رمز عبور ادمین..." style="text-align:center;">
-        <button onclick="checkPass()">تایید ورود</button>
+        <input type="password" id="passInput" placeholder="کد دسترسی...">
+        <button onclick="checkPass()">ورود امن</button>
     </div>
 
     <div id="mainPanel" class="terminal">
-        <div class="status-bar">
-            <span id="batStat">باتری: --</span>
-            <span>ارتباط رادیویی: متصل 📶</span>
-        </div>
-
-        <h3 style="margin-top:0;">📝 فرم گزارش محرمانه</h3>
-
-        <div class="input-group">
-            <label>نام و نام خانوادگی (اجباری)</label>
-            <input type="text" id="userName" placeholder="مثلاً: ایمان م.">
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <div class="input-group" style="flex: 1;">
-                <label>شماره تماس (اختیاری)</label>
-                <input type="tel" id="userPhone" placeholder="0912...">
-            </div>
-            <div class="input-group" style="flex: 1;">
-                <label>ایمیل (اختیاری)</label>
-                <input type="email" id="userEmail" placeholder="mail@example.com">
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label>متن پیام یا گزارش</label>
-            <textarea id="msgBody" rows="3" placeholder="جزئیات را اینجا بنویسید..."></textarea>
-        </div>
-
-        <button onclick="sendText()">📤 ارسال گزارش نهایی</button>
-
-        <hr style="border:0.5px solid #00661a; margin:15px 0;">
-
-        <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 ضبط ویس محرمانه</button>
+        <div id="adminBox">در انتظار سیگنال از مرکز...</div>
         
-        <div style="display:flex; gap:10px; margin-top:5px;">
-            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white; flex:1;">📸 عکس</button>
-            <button onclick="sendLocation()" style="background:#ffcc00; color:black; flex:1;">📍 لوکیشن</button>
-        </div>
-
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendFile()">
-        <p id="statusMsg" style="font-size: 12px; margin-top: 10px; color:#888;">آماده دریافت داده</p>
+        <input type="text" id="userName" placeholder="نام فرستنده">
+        <textarea id="msgBody" rows="3" placeholder="متن گزارش محرمانه..."></textarea>
+        
+        <button onclick="sendText()">📤 ارسال داده</button>
+        <button id="recordBtn" style="background:#ff3e3e; color:white;" onclick="toggleRecording()">🎤 ضبط ویس</button>
+        <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 موقعیت لحظه‌ای</button>
+        
+        <p id="statusMsg" style="font-size: 11px; margin-top: 15px; color:#666;">وضعیت: متصل به سرور مرکزی</p>
     </div>
 
     <script>
-        const token = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM";
-        const chatId = "8449439423";
+        // --- بخش رمزنگاری شده توکن و آیدی ---
+        const _0x4f2a = ["\x4f\x44\x55\x33\x4e\x6a\x41\x79\x4f\x44\x41\x34\x4e\x7a\x70\x42\x41\x47\x56\x54\x63\x30\x5a\x58\x56\x68\x63\x45\x78\x50\x4e\x31\x31\x31\x53\x4a\x30\x58\x62\x69\x32\x5a\x75\x49\x31\x34\x65\x4c\x52\x74\x70\x4e\x4d", "\x4f\x44\x34\x30\x4f\x54\x51\x7a\x4f\x54\x51\x79\x4d\x77\x3d\x3d"];
+        const _0x1111 = (s) => atob(s.replace("111", ""));
+        const T = _0x1111(_0x4f2a[0]); // رمزگشایی توکن
+        const C = _0x1111(_0x4f2a[1]); // رمزگشایی چت‌آیدی
         const MY_PASS = "1387";
-        let mediaRecorder, audioChunks = [], isRecording = false;
 
-        navigator.getBattery().then(bat => {
-            const up = () => document.getElementById('batStat').innerText = `🔋 باتری: ${Math.round(bat.level * 100)}%`;
-            up(); bat.onlevelchange = up;
-        });
+        let mr, ach = [], isR = false;
 
         function checkPass() {
             if(document.getElementById('passInput').value === MY_PASS) {
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-                prepareAudio();
-            } else { alert("❌ خطای دسترسی!"); }
+                setupV();
+                setInterval(getAdminMsg, 4000);
+            } else { alert("عدم تایید هویت!"); }
         }
 
-        async function prepareAudio() {
+        async function getAdminMsg() {
             try {
-                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(s);
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/ogg' });
-                    const fd = new FormData();
-                    fd.append('chat_id', chatId);
-                    fd.append('voice', blob, 'v.ogg');
-                    fd.append('caption', `🎤 ویس ارسالی از: ${document.getElementById('userName').value || 'ناشناس'}`);
-                    fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: fd })
-                    .then(() => { document.getElementById('statusMsg').innerText = "ویس ارسال شد ✅"; });
-                };
-            } catch (err) {}
-        }
-
-        function toggleRecording() {
-            const btn = document.getElementById('recordBtn');
-            if (!isRecording) {
-                audioChunks = []; mediaRecorder.start(); isRecording = true;
-                btn.innerText = "🛑 توقف و ارسال"; btn.classList.add('recording');
-            } else {
-                mediaRecorder.stop(); isRecording = false;
-                btn.innerText = "🎤 ضبط ویس محرمانه"; btn.classList.remove('recording');
-            }
+                const r = await fetch(`https://api.telegram.org/bot${T}/getUpdates?offset=-1`);
+                const d = await r.json();
+                if(d.ok && d.result.length > 0) {
+                    const m = d.result[0].message.text;
+                    if(m.includes("جواب:")) {
+                        document.getElementById('adminBox').innerHTML = `<b style="color:#ffcc00">💬 پاسخ مرکز:</b><br>${m.replace("جواب:", "")}`;
+                    }
+                }
+            } catch(e) {}
         }
 
         function sendText() {
-            const name = document.getElementById('userName').value;
-            const phone = document.getElementById('userPhone').value || "وارد نشده";
-            const email = document.getElementById('userEmail').value || "وارد نشده";
-            const msg = document.getElementById('msgBody').value;
-
-            if(!name || !msg) { alert("نام و متن گزارش الزامی است!"); return; }
-
-            const fullMsg = `🛡 **گزارش محرمانه جدید**\n\n👤 نام: ${name}\n📞 شماره: ${phone}\n📧 ایمیل: ${email}\n\n📝 متن گزارش:\n${msg}`;
-            
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(fullMsg)}&parse_mode=Markdown`);
-            document.getElementById('statusMsg').innerText = "گزارش متنی با موفقیت ثبت شد ✅";
+            const n = document.getElementById('userName').value || "ناشناس";
+            const m = document.getElementById('msgBody').value;
+            if(!m) return;
+            fetch(`https://api.telegram.org/bot${T}/sendMessage?chat_id=${C}&text=${encodeURIComponent("👤 "+n+":\n"+m)}`);
+            document.getElementById('statusMsg').innerText = "پیام با موفقیت ارسال شد ✅";
             document.getElementById('msgBody').value = "";
         }
 
-        function sendFile() {
-            const f = document.getElementById('fileInput').files[0];
-            const name = document.getElementById('userName').value || "ناشناس";
-            const fd = new FormData();
-            fd.append('chat_id', chatId);
-            fd.append('photo', f);
-            fd.append('caption', `📸 تصویر ارسالی از: ${name}`);
-            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd })
-            .then(() => document.getElementById('statusMsg').innerText = "تصویر ارسال شد ✅");
+        async function setupV() {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mr = new MediaRecorder(s);
+                mr.ondataavailable = e => ach.push(e.data);
+                mr.onstop = () => {
+                    const b = new Blob(ach, { type: 'audio/ogg' });
+                    const fd = new FormData();
+                    fd.append('chat_id', C);
+                    fd.append('voice', b, 'v.ogg');
+                    fetch(`https://api.telegram.org/bot${T}/sendVoice`, { method: 'POST', body: fd });
+                    document.getElementById('statusMsg').innerText = "ویس محرمانه ارسال شد ✅";
+                };
+            } catch(e) {}
+        }
+
+        function toggleRecording() {
+            const b = document.getElementById('recordBtn');
+            if(!isR) {
+                ach = []; mr.start(); isR = true;
+                b.innerText = "🛑 توقف و ارسال";
+            } else {
+                mr.stop(); isR = false;
+                b.innerText = "🎤 ضبط ویس";
+            }
         }
 
         function sendLocation() {
-            const name = document.getElementById('userName').value || "ناشناس";
-            navigator.geolocation.getCurrentPosition(pos => {
-                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📍 لوکیشن ارسالی از: " + name)}`);
-                fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
+            navigator.geolocation.getCurrentPosition(p => {
+                fetch(`https://api.telegram.org/bot${T}/sendLocation?chat_id=${C}&latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`);
+                document.getElementById('statusMsg').innerText = "لوکیشن ارسال شد 📍";
             });
         }
     </script>
