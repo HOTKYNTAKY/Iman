@@ -1,38 +1,85 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>پنل تست شخصی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل فوق امنیتی HOTKYNTAKY</title>
     <style>
-        body { background: #1a1a1a; color: white; font-family: Tahoma; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: #2c2c2c; padding: 30px; border-radius: 15px; border: 2px solid #0088cc; text-align: center; width: 300px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { background: #0088cc; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .terminal { background: rgba(0, 20, 0, 0.9); padding: 30px; border: 2px solid #0f0; border-radius: 10px; box-shadow: 0 0 20px #0f0; width: 350px; text-align: center; z-index: 10; }
+        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 100%; margin: 10px 0; border-radius: 5px; outline: none; box-sizing: border-box; }
+        button { background: #0f0; color: #000; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #0c0; box-shadow: 0 0 10px #0f0; }
+        #mainPanel { display: none; }
+        .status { font-size: 12px; margin-top: 10px; color: #888; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>🚀 تست پیام‌رسان شخصی</h3>
-        <p style="font-size: 12px; color: #aaa;">این یک صفحه تست جداگانه است</p>
-        <input type="text" id="subject" placeholder="موضوع تست">
-        <textarea id="body" placeholder="متن محرمانه..." style="width:100%; height:80px; margin-bottom:10px; border-radius:5px;"></textarea>
-        <button onclick="sendPrivate()">ارسال به تلگرام شخصی</button>
+
+    <div id="loginBox" class="terminal">
+        <h2>🔒 ورود امنیتی</h2>
+        <p>کد دسترسی را وارد کنید:</p>
+        <input type="password" id="passInput" placeholder="Passcode...">
+        <button onclick="checkPass()">تایید هویت</button>
+    </div>
+
+    <div id="mainPanel" class="terminal">
+        <h2>🛰 پنل عملیاتی</h2>
+        <input type="text" id="msgTitle" placeholder="موضوع عملیات...">
+        <textarea id="msgBody" style="width:100%; height:80px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:5px; padding:10px; box-sizing:border-box;" placeholder="گزارش نهایی..."></textarea>
+        
+        <button onclick="sendText()">🚀 ارسال گزارش متنی</button>
+        <button onclick="sendLocation()" style="background:#ff0055; color:white;">📍 ارسال لوکیشن لحظه‌ای</button>
+        
+        <p class="status" id="statusMsg">آماده برای ارسال سیگنال...</p>
     </div>
 
     <script>
-    function sendPrivate() {
         const token = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM";
         const chatId = "8449439423";
-        const sub = document.getElementById('subject').value;
-        const msg = document.getElementById('body').value;
+        const MY_PASS = "1387"; // رمز عبور انتخابی تو (می‌تونی عوضش کنی)
 
-        const secureText = `🔐 پیام شخصی جدید:\n📌 موضوع: ${sub}\n📝 متن: ${msg}`;
-        const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(secureText)}`;
+        function checkPass() {
+            const input = document.getElementById('passInput').value;
+            if(input === MY_PASS) {
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('mainPanel').style.display = 'block';
+            } else {
+                alert("دسترسی غیرمجاز! کد اشتباه است.");
+            }
+        }
 
-        fetch(url).then(res => {
-            if(res.ok) alert("ارسال شد! تلگرامت رو چک کن.");
-        });
-    }
+        function sendText() {
+            const t = document.getElementById('msgTitle').value;
+            const b = document.getElementById('msgBody').value;
+            if(!t || !b) return alert("فیلدها خالی است!");
+
+            const text = `🕵️‍♂️ گزارش جدید:\n📌 موضوع: ${t}\n📝 متن: ${b}`;
+            executeFetch(text);
+        }
+
+        function sendLocation() {
+            document.getElementById('statusMsg').innerText = "در حال دریافت GPS...";
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+                const text = `📍 موقعیت جغرافیایی HOTKYNTAKY:\n🔗 نقشه: ${mapLink}`;
+                executeFetch(text);
+            }, () => {
+                alert("خطا در دریافت لوکیشن! اجازه دسترسی به GPS را بدهید.");
+            });
+        }
+
+        function executeFetch(msg) {
+            const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+            fetch(url).then(res => {
+                if(res.ok) {
+                    document.getElementById('statusMsg').innerText = "سیگنال با موفقیت ارسال شد ✅";
+                    setTimeout(() => document.getElementById('statusMsg').innerText = "آماده ارسال مجدد...", 3000);
+                }
+            });
+        }
     </script>
-
-</body></html>
+</body>
+</html>
