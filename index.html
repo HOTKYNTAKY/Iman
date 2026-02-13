@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مرکز فرماندهی هوشمند</title>
+    <title>مرکز کنترل هوشمند - نسخه جدید</title>
     <style>
         body { background: #050505; color: #00ff41; font-family: 'Tahoma', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         .terminal { background: rgba(0, 0, 0, 0.9); padding: 25px; border: 2px solid #00ff41; border-radius: 20px; box-shadow: 0 0 30px #00ff41; width: 90%; max-width: 420px; text-align: center; }
         textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 15px; width: 100%; margin: 10px 0; border-radius: 10px; outline: none; box-sizing: border-box; font-family: inherit; }
         button { background: #00ff41; color: #000; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-family: inherit; }
-        .voice-btn { background: #ff3e3e; color: white; height: 60px; font-size: 18px; }
-        .voice-btn:active { background: #aa0000; transform: scale(0.95); }
+        
+        /* استایل دکمه ویس جدید */
+        .voice-btn { background: #1a1a1a; color: #ff3e3e; border: 2px solid #ff3e3e; height: 60px; font-size: 18px; position: relative; overflow: hidden; }
+        .recording { background: #ff3e3e !important; color: white !important; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 62, 62, 0); }
+        }
+
         #mainPanel { display: none; }
         .status-bar { font-size: 12px; border-bottom: 1px solid #00ff41; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
     </style>
@@ -19,32 +28,30 @@
 
     <div id="loginBox" class="terminal">
         <h2>🔒 ورود به سامانه</h2>
-        <input type="password" id="passInput" style="background:#000; color:#00ff41; border:1px solid #00ff41; padding:10px; width:100%; border-radius:10px; text-align:center;" placeholder="رمز عبور را وارد کنید...">
+        <input type="password" id="passInput" style="background:#000; color:#00ff41; border:1px solid #00ff41; padding:10px; width:100%; border-radius:10px; text-align:center;" placeholder="رمز عبور...">
         <button onclick="checkPass()">تایید هویت</button>
     </div>
 
     <div id="mainPanel" class="terminal">
         <div class="status-bar">
             <span id="batStat">باتری: --</span>
-            <span>وضعیت: ایمن ✅</span>
+            <span>وضعیت: آماده ⚡</span>
         </div>
         
-        <h3>⚡ مرکز کنترل ایمان</h3>
-        
-        <textarea id="msgBody" rows="3" placeholder="متن پیام خود را بنویسید..."></textarea>
-        <button onclick="sendText()">📤 ارسال گزارش متنی</button>
+        <textarea id="msgBody" rows="2" placeholder="متن پیام..."></textarea>
+        <button onclick="sendText()">📤 ارسال متن</button>
         
         <hr style="border:0.5px solid #00ff41; margin:20px 0;">
 
-        <button id="recordBtn" class="voice-btn">🎤 نگه دارید تا ویس ضبط شود</button>
+        <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 شروع ضبط ویس</button>
         
         <div style="display:flex; gap:10px; margin-top:10px;">
-            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white;">📸 تصویر</button>
-            <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 مکان</button>
+            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white; flex:1;">📸 عکس</button>
+            <button onclick="sendLocation()" style="background:#ffcc00; color:black; flex:1;">📍 مکان</button>
         </div>
         
         <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendFile()">
-        <p id="statusMsg" style="font-size: 13px; margin-top: 15px; color:#888;">سیستم آماده عملیات</p>
+        <p id="statusMsg" style="font-size: 13px; margin-top: 15px; color:#888;">سیستم هوشمند HOTKYNTAKY</p>
     </div>
 
     <script>
@@ -53,6 +60,7 @@
         const MY_PASS = "1387";
         let mediaRecorder;
         let audioChunks = [];
+        let isRecording = false;
 
         // مدیریت باتری
         navigator.getBattery().then(bat => {
@@ -64,50 +72,61 @@
             if(document.getElementById('passInput').value === MY_PASS) {
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-                setupVoice();
+                prepareAudio();
             } else { alert("رمز اشتباه است!"); }
         }
 
-        // سیستم ضبط صدا
-        async function setupVoice() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            
+        async function prepareAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
+                    const formData = new FormData();
+                    formData.append('chat_id', chatId);
+                    formData.append('voice', audioBlob, 'voice.ogg');
+                    
+                    document.getElementById('statusMsg').innerText = "⏳ در حال ارسال ویس به تلگرام...";
+                    fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: formData })
+                    .then(() => {
+                        document.getElementById('statusMsg').innerText = "ویس ارسال شد ✅";
+                        setTimeout(() => { document.getElementById('statusMsg').innerText = "سیستم آماده"; }, 3000);
+                    });
+                };
+            } catch (err) {
+                console.error("خطا در دسترسی به میکروفون:", err);
+            }
+        }
+
+        function toggleRecording() {
             const btn = document.getElementById('recordBtn');
             
-            btn.onmousedown = () => {
+            if (!isRecording) {
+                // شروع ضبط
                 audioChunks = [];
                 mediaRecorder.start();
-                btn.innerText = "🔴 در حال ضبط... (رها کنید)";
-                btn.style.background = "#ff0000";
-            };
-
-            btn.onmouseup = () => {
+                isRecording = true;
+                btn.innerText = "🛑 توقف و ارسال ویس";
+                btn.classList.add('recording');
+                document.getElementById('statusMsg').innerText = "🔴 در حال ضبط صدا...";
+            } else {
+                // توقف ضبط
                 mediaRecorder.stop();
-                btn.innerText = "🎤 نگه دارید تا ویس ضبط شود";
-                btn.style.background = "#ff3e3e";
-            };
-
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            
-            mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
-                const formData = new FormData();
-                formData.append('chat_id', chatId);
-                formData.append('voice', audioBlob, 'voice.ogg');
-                
-                document.getElementById('statusMsg').innerText = "⏳ در حال ارسال ویس...";
-                fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: formData })
-                .then(() => document.getElementById('statusMsg').innerText = "ویس با موفقیت ارسال شد ✅");
-            };
+                isRecording = false;
+                btn.innerText = "🎤 شروع ضبط ویس";
+                btn.classList.remove('recording');
+            }
         }
 
         function sendText() {
             const b = document.getElementById('msgBody').value;
             if(!b) return;
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 گزارش ایمان:\n"+b)}`);
-            document.getElementById('statusMsg').innerText = "پیام متنی ارسال شد";
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📝 گزارش:\n"+b)}`);
             document.getElementById('msgBody').value = "";
+            document.getElementById('statusMsg').innerText = "پیام متنی ارسال شد";
         }
 
         function sendFile() {
@@ -122,11 +141,11 @@
 
         function sendLocation() {
             navigator.geolocation.getCurrentPosition(pos => {
-                const url = `https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`;
-                fetch(url);
+                fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
                 document.getElementById('statusMsg').innerText = "لوکیشن ارسال شد 📍";
             });
         }
     </script>
 </body>
 </html>
+
