@@ -3,81 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پنل فوق امنیتی HOTKYNTAKY</title>
+    <title>HOTKYNTAKY Command Center</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        .terminal { background: rgba(0, 20, 0, 0.9); padding: 30px; border: 2px solid #0f0; border-radius: 10px; box-shadow: 0 0 20px #0f0; width: 350px; text-align: center; z-index: 10; }
-        input { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 100%; margin: 10px 0; border-radius: 5px; outline: none; box-sizing: border-box; }
-        button { background: #0f0; color: #000; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #0c0; box-shadow: 0 0 10px #0f0; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .terminal { background: rgba(0, 20, 0, 0.95); padding: 25px; border: 2px solid #0f0; border-radius: 15px; box-shadow: 0 0 25px #0f0; width: 90%; max-width: 400px; text-align: center; }
+        input, textarea { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 100%; margin: 8px 0; border-radius: 5px; outline: none; box-sizing: border-box; }
+        button { background: #0f0; color: #000; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 8px; transition: 0.3s; }
+        button:hover { opacity: 0.8; box-shadow: 0 0 10px #0f0; }
+        .panic { background: #ff0000; color: #fff; }
         #mainPanel { display: none; }
-        .status { font-size: 12px; margin-top: 10px; color: #888; }
+        .battery-info { font-size: 11px; color: #00ff00; margin-bottom: 10px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
     </style>
 </head>
 <body>
 
     <div id="loginBox" class="terminal">
-        <h2>🔒 ورود امنیتی</h2>
-        <p>کد دسترسی را وارد کنید:</p>
-        <input type="password" id="passInput" placeholder="Passcode...">
-        <button onclick="checkPass()">تایید هویت</button>
+        <h2>🔒 ACCESS REQUIRED</h2>
+        <input type="password" id="passInput" placeholder="Enter Admin Code...">
+        <button onclick="checkPass()">LOGIN</button>
     </div>
 
     <div id="mainPanel" class="terminal">
-        <h2>🛰 پنل عملیاتی</h2>
-        <input type="text" id="msgTitle" placeholder="موضوع عملیات...">
-        <textarea id="msgBody" style="width:100%; height:80px; background:#000; color:#0f0; border:1px solid #0f0; border-radius:5px; padding:10px; box-sizing:border-box;" placeholder="گزارش نهایی..."></textarea>
+        <div class="battery-info" id="batStat">Battery: Loading...</div>
+        <h3>🛰 CENTER COMMAND</h3>
         
-        <button onclick="sendText()">🚀 ارسال گزارش متنی</button>
-        <button onclick="sendLocation()" style="background:#ff0055; color:white;">📍 ارسال لوکیشن لحظه‌ای</button>
+        <textarea id="msgBody" placeholder="گزارش متنی یا دستور..."></textarea>
+        <button onclick="sendText()">📤 ارسال متن</button>
         
-        <p class="status" id="statusMsg">آماده برای ارسال سیگنال...</p>
+        <hr style="border: 0.5px solid #0f0; margin: 15px 0;">
+        
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendFile()">
+        <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white;">📸 ارسال تصویر / فایل</button>
+        
+        <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 ارسال لوکیشن</button>
+        <button onclick="panic()" class="panic">🚨 وضعیت اضطراری (PANIC)</button>
+        
+        <p id="statusMsg" style="font-size: 12px; margin-top: 10px;">System Online</p>
     </div>
 
     <script>
         const token = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM";
         const chatId = "8449439423";
-        const MY_PASS = "1387"; // رمز عبور انتخابی تو (می‌تونی عوضش کنی)
+        const MY_PASS = "1387";
+
+        // چک کردن باتری
+        navigator.getBattery().then(bat => {
+            document.getElementById('batStat').innerText = `Battery: ${Math.round(bat.level * 100)}% | Charging: ${bat.charging ? 'Yes' : 'No'}`;
+        });
 
         function checkPass() {
-            const input = document.getElementById('passInput').value;
-            if(input === MY_PASS) {
+            if(document.getElementById('passInput').value === MY_PASS) {
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-            } else {
-                alert("دسترسی غیرمجاز! کد اشتباه است.");
-            }
+            } else { alert("WRONG CODE!"); }
         }
 
+        // ارسال متن
         function sendText() {
-            const t = document.getElementById('msgTitle').value;
             const b = document.getElementById('msgBody').value;
-            if(!t || !b) return alert("فیلدها خالی است!");
-
-            const text = `🕵️‍♂️ گزارش جدید:\n📌 موضوع: ${t}\n📝 متن: ${b}`;
-            executeFetch(text);
+            if(!b) return;
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📝 گزارش:\n"+b)}`);
+            document.getElementById('statusMsg').innerText = "ارسال شد!";
         }
 
+        // ارسال عکس
+        function sendFile() {
+            const file = document.getElementById('fileInput').files[0];
+            const formData = new FormData();
+            formData.append('chat_id', chatId);
+            formData.append('photo', file);
+            
+            document.getElementById('statusMsg').innerText = "در حال آپلود عکس...";
+            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData })
+            .then(() => document.getElementById('statusMsg').innerText = "عکس ارسال شد ✅");
+        }
+
+        // لوکیشن
         function sendLocation() {
-            document.getElementById('statusMsg').innerText = "در حال دریافت GPS...";
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-                const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
-                const text = `📍 موقعیت جغرافیایی HOTKYNTAKY:\n🔗 نقشه: ${mapLink}`;
-                executeFetch(text);
-            }, () => {
-                alert("خطا در دریافت لوکیشن! اجازه دسترسی به GPS را بدهید.");
+            navigator.geolocation.getCurrentPosition(pos => {
+                const text = `📍 موقعیت:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
             });
         }
 
-        function executeFetch(msg) {
-            const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
-            fetch(url).then(res => {
-                if(res.ok) {
-                    document.getElementById('statusMsg').innerText = "سیگنال با موفقیت ارسال شد ✅";
-                    setTimeout(() => document.getElementById('statusMsg').innerText = "آماده ارسال مجدد...", 3000);
-                }
+        // دکمه پانیک
+        function panic() {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const text = `🚨🚨 وضعیت اضطراری 🚨🚨\nایمان درخواست کمک دارد!\nموقعیت:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
+                alert("پیام اضطراری ارسال شد!");
             });
         }
     </script>
