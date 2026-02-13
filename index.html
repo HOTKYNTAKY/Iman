@@ -3,95 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOTKYNTAKY Command Center</title>
+    <title>مرکز فرماندهی هوشمند</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .terminal { background: rgba(0, 20, 0, 0.95); padding: 25px; border: 2px solid #0f0; border-radius: 15px; box-shadow: 0 0 25px #0f0; width: 90%; max-width: 400px; text-align: center; }
-        input, textarea { background: #000; border: 1px solid #0f0; color: #0f0; padding: 10px; width: 100%; margin: 8px 0; border-radius: 5px; outline: none; box-sizing: border-box; }
-        button { background: #0f0; color: #000; border: none; padding: 10px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 8px; transition: 0.3s; }
-        button:hover { opacity: 0.8; box-shadow: 0 0 10px #0f0; }
-        .panic { background: #ff0000; color: #fff; }
+        body { background: #050505; color: #00ff41; font-family: 'Tahoma', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .terminal { background: rgba(0, 0, 0, 0.9); padding: 25px; border: 2px solid #00ff41; border-radius: 20px; box-shadow: 0 0 30px #00ff41; width: 90%; max-width: 420px; text-align: center; }
+        textarea { background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 15px; width: 100%; margin: 10px 0; border-radius: 10px; outline: none; box-sizing: border-box; font-family: inherit; }
+        button { background: #00ff41; color: #000; border: none; padding: 12px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-family: inherit; }
+        .voice-btn { background: #ff3e3e; color: white; height: 60px; font-size: 18px; }
+        .voice-btn:active { background: #aa0000; transform: scale(0.95); }
         #mainPanel { display: none; }
-        .battery-info { font-size: 11px; color: #00ff00; margin-bottom: 10px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
+        .status-bar { font-size: 12px; border-bottom: 1px solid #00ff41; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
     <div id="loginBox" class="terminal">
-        <h2>🔒 ACCESS REQUIRED</h2>
-        <input type="password" id="passInput" placeholder="Enter Admin Code...">
-        <button onclick="checkPass()">LOGIN</button>
+        <h2>🔒 ورود به سامانه</h2>
+        <input type="password" id="passInput" style="background:#000; color:#00ff41; border:1px solid #00ff41; padding:10px; width:100%; border-radius:10px; text-align:center;" placeholder="رمز عبور را وارد کنید...">
+        <button onclick="checkPass()">تایید هویت</button>
     </div>
 
     <div id="mainPanel" class="terminal">
-        <div class="battery-info" id="batStat">Battery: Loading...</div>
-        <h3>🛰 CENTER COMMAND</h3>
+        <div class="status-bar">
+            <span id="batStat">باتری: --</span>
+            <span>وضعیت: ایمن ✅</span>
+        </div>
         
-        <textarea id="msgBody" placeholder="گزارش متنی یا دستور..."></textarea>
-        <button onclick="sendText()">📤 ارسال متن</button>
+        <h3>⚡ مرکز کنترل ایمان</h3>
         
-        <hr style="border: 0.5px solid #0f0; margin: 15px 0;">
+        <textarea id="msgBody" rows="3" placeholder="متن پیام خود را بنویسید..."></textarea>
+        <button onclick="sendText()">📤 ارسال گزارش متنی</button>
+        
+        <hr style="border:0.5px solid #00ff41; margin:20px 0;">
+
+        <button id="recordBtn" class="voice-btn">🎤 نگه دارید تا ویس ضبط شود</button>
+        
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white;">📸 تصویر</button>
+            <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 مکان</button>
+        </div>
         
         <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="sendFile()">
-        <button onclick="document.getElementById('fileInput').click()" style="background:#0088ff; color:white;">📸 ارسال تصویر / فایل</button>
-        
-        <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 ارسال لوکیشن</button>
-        <button onclick="panic()" class="panic">🚨 وضعیت اضطراری (PANIC)</button>
-        
-        <p id="statusMsg" style="font-size: 12px; margin-top: 10px;">System Online</p>
+        <p id="statusMsg" style="font-size: 13px; margin-top: 15px; color:#888;">سیستم آماده عملیات</p>
     </div>
 
     <script>
         const token = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM";
         const chatId = "8449439423";
         const MY_PASS = "1387";
+        let mediaRecorder;
+        let audioChunks = [];
 
-        // چک کردن باتری
+        // مدیریت باتری
         navigator.getBattery().then(bat => {
-            document.getElementById('batStat').innerText = `Battery: ${Math.round(bat.level * 100)}% | Charging: ${bat.charging ? 'Yes' : 'No'}`;
+            const updateBat = () => document.getElementById('batStat').innerText = `🔋 باتری: ${Math.round(bat.level * 100)}%`;
+            updateBat(); bat.onlevelchange = updateBat;
         });
 
         function checkPass() {
             if(document.getElementById('passInput').value === MY_PASS) {
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('mainPanel').style.display = 'block';
-            } else { alert("WRONG CODE!"); }
+                setupVoice();
+            } else { alert("رمز اشتباه است!"); }
         }
 
-        // ارسال متن
+        // سیستم ضبط صدا
+        async function setupVoice() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            const btn = document.getElementById('recordBtn');
+            
+            btn.onmousedown = () => {
+                audioChunks = [];
+                mediaRecorder.start();
+                btn.innerText = "🔴 در حال ضبط... (رها کنید)";
+                btn.style.background = "#ff0000";
+            };
+
+            btn.onmouseup = () => {
+                mediaRecorder.stop();
+                btn.innerText = "🎤 نگه دارید تا ویس ضبط شود";
+                btn.style.background = "#ff3e3e";
+            };
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/ogg' });
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('voice', audioBlob, 'voice.ogg');
+                
+                document.getElementById('statusMsg').innerText = "⏳ در حال ارسال ویس...";
+                fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: formData })
+                .then(() => document.getElementById('statusMsg').innerText = "ویس با موفقیت ارسال شد ✅");
+            };
+        }
+
         function sendText() {
             const b = document.getElementById('msgBody').value;
             if(!b) return;
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📝 گزارش:\n"+b)}`);
-            document.getElementById('statusMsg').innerText = "ارسال شد!";
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 گزارش ایمان:\n"+b)}`);
+            document.getElementById('statusMsg').innerText = "پیام متنی ارسال شد";
+            document.getElementById('msgBody').value = "";
         }
 
-        // ارسال عکس
         function sendFile() {
             const file = document.getElementById('fileInput').files[0];
             const formData = new FormData();
             formData.append('chat_id', chatId);
             formData.append('photo', file);
-            
-            document.getElementById('statusMsg').innerText = "در حال آپلود عکس...";
+            document.getElementById('statusMsg').innerText = "⏳ در حال ارسال تصویر...";
             fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: formData })
-            .then(() => document.getElementById('statusMsg').innerText = "عکس ارسال شد ✅");
+            .then(() => document.getElementById('statusMsg').innerText = "تصویر ارسال شد ✅");
         }
 
-        // لوکیشن
         function sendLocation() {
             navigator.geolocation.getCurrentPosition(pos => {
-                const text = `📍 موقعیت:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
-            });
-        }
-
-        // دکمه پانیک
-        function panic() {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const text = `🚨🚨 وضعیت اضطراری 🚨🚨\nایمان درخواست کمک دارد!\nموقعیت:\nhttps://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
-                alert("پیام اضطراری ارسال شد!");
+                const url = `https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`;
+                fetch(url);
+                document.getElementById('statusMsg').innerText = "لوکیشن ارسال شد 📍";
             });
         }
     </script>
